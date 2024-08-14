@@ -5,17 +5,36 @@ from store_weather import store_weather_data
 
 def batch_process():
     api_key = "0cd5195b0230bccd9770892c5e38c5d8"
-    city = "London,uk"
-    weather_data = fetch_weather_data(city, api_key)
-    if weather_data:
-        store_weather_data(weather_data)
-    else:
-        print("No data to store")
+    cities = ["Barrie,ca", "Toronto,ca"]
+    for city in cities:
+        print(f"Fetching weather data for {city}")
+        weather_data = fetch_weather_data(city, api_key)
+        if weather_data:
+            simplified_data = {
+                "name": weather_data["name"],
+                "main": {
+                    "temp": weather_data["main"]["temp"],
+                    "humidity": weather_data["main"]["humidity"]
+                },
+                "weather": [
+                    {
+                        "description": weather_data["weather"][0]["description"]
+                    }
+                ]
+            }
+            print(f"Storing weather data for {city}")
+            store_weather_data(simplified_data)
+        else:
+            print(f"No data to store for {city}")
 
-# Schedule the batch process to run every 24 hours
-schedule.every(24).hours.do(batch_process)
+# Schedule the batch process to run every minute
+schedule.every(1).minute.do(batch_process)
 
 # Keep the script running
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if __name__ == '__main__':
+    print("Running initial batch process")
+    batch_process()
+    print("Initial batch process complete, entering scheduling mode")
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
