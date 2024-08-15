@@ -7,10 +7,11 @@ app = Flask(__name__)
 def get_weather_data():
     try:
         conn = psycopg2.connect(
-            dbname=os.environ.get('PGDATABASE'),
-            user=os.environ.get('PGUSER'),
-            password=os.environ.get('PGPASSWORD'),
-            host=os.environ.get('PGHOST')
+            dbname='postgres',
+            user='postgres',
+            password='Krishna@123',
+            host='34.173.45.201',
+            port='5432'
         )
         c = conn.cursor()
         c.execute('''

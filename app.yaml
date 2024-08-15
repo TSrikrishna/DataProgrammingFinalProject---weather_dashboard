@@ -11,7 +11,8 @@ handlers:
   script: auto
 
 env_variables:
-  PGHOST: "/cloudsql/weatherdataacquisition:us-central1:YOUR_INSTANCE_NAME"
+  PGHOST: "34.173.45.201"
   PGUSER: "postgres"
   PGPASSWORD: "Krishna@123"
   PGDATABASE: "postgres"
+  INSTANCE_CONNECTION_NAME: "weatherdataacquisition:us-central1:weather-data-instance"

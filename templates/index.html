@@ -4,95 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-            background-color: #f4f4f4;
-        }
-
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 0;
-            font-size: 24px;
-        }
-
-        .chart-container {
-            width: 80%;
-            margin: 20px auto;
-        }
-    </style>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
         google.charts.load('current', { 'packages': ['corechart'] });
-        google.charts.setOnLoadCallback(drawCharts);
+        google.charts.setOnLoadCallback(drawChart);
 
-        function drawCharts() {
+        function drawChart() {
             fetch('/api/weather')
                 .then(response => response.json())
                 .then(data => {
-                    var cities = [...new Set(data.map(item => item.city))];
+                    var temperatureData = new google.visualization.DataTable();
+                    temperatureData.addColumn('datetime', 'Time');
+                    temperatureData.addColumn('number', 'Temperature');
+                    var humidityData = new google.visualization.DataTable();
+                    humidityData.addColumn('datetime', 'Time');
+                    humidityData.addColumn('number', 'Humidity');
 
-                    cities.forEach(city => {
-                        var cityData = data.filter(item => item.city === city);
+                    var cities = {};
 
-                        var tempDataTable = new google.visualization.DataTable();
-                        tempDataTable.addColumn('datetime', 'Time');
-                        tempDataTable.addColumn('number', 'Temperature (°C)');
+                    data.forEach(row => {
+                        var city = row.city;
+                        if (!cities[city]) {
+                            cities[city] = { temp: [], humidity: [] };
+                        }
+                        cities[city].temp.push([new Date(row.minute), row.temperature]);
+                        cities[city].humidity.push([new Date(row.minute), row.humidity]);
+                    });
 
-                        var humidityDataTable = new google.visualization.DataTable();
-                        humidityDataTable.addColumn('datetime', 'Time');
-                        humidityDataTable.addColumn('number', 'Humidity (%)');
-
-                        cityData.forEach(row => {
-                            var dateTime = new Date(row.minute);
-                            tempDataTable.addRow([dateTime, row.temperature]);
-                            humidityDataTable.addRow([dateTime, row.humidity]);
-                        });
-
+                    for (var city in cities) {
                         var tempOptions = {
-                            title: `${city} Temperature Data`,
+                            title: 'Temperature Data for ' + city,
                             hAxis: { title: 'Time' },
                             vAxis: { title: 'Temperature (°C)' },
-                            pointsVisible: true,
-                            lineWidth: 2,
-                            colors: ['#1c91c0']
+                            curveType: 'function',
+                            legend: { position: 'bottom' },
+                            series: { 0: { pointShape: 'circle', lineDashStyle: [4, 4] } }
                         };
-
                         var humidityOptions = {
-                            title: `${city} Humidity Data`,
+                            title: 'Humidity Data for ' + city,
                             hAxis: { title: 'Time' },
                             vAxis: { title: 'Humidity (%)' },
-                            bars: 'vertical',
-                            bar: { groupWidth: '95%' },
-                            colors: ['#f1ca3a']
+                            legend: { position: 'bottom' },
+                            series: { 0: { pointShape: 'circle' } }
                         };
 
-                        var tempChartDiv = document.createElement('div');
-                        tempChartDiv.id = `${city}-temp-chart`;
-                        tempChartDiv.className = 'chart-container';
-                        document.getElementById('charts').appendChild(tempChartDiv);
+                        var tempDiv = document.createElement('div');
+                        tempDiv.style.width = '100%';
+                        tempDiv.style.height = '500px';
+                        document.body.appendChild(tempDiv);
+                        var tempChart = new google.visualization.LineChart(tempDiv);
+                        tempChart.draw(google.visualization.arrayToDataTable([[{ label: 'Time', type: 'datetime' }, 'Temperature']].concat(cities[city].temp)), tempOptions);
 
-                        var humidityChartDiv = document.createElement('div');
-                        humidityChartDiv.id = `${city}-humidity-chart`;
-                        humidityChartDiv.className = 'chart-container';
-                        document.getElementById('charts').appendChild(humidityChartDiv);
-
-                        var tempChart = new google.visualization.LineChart(document.getElementById(`${city}-temp-chart`));
-                        var humidityChart = new google.visualization.ColumnChart(document.getElementById(`${city}-humidity-chart`));
-
-                        tempChart.draw(tempDataTable, tempOptions);
-                        humidityChart.draw(humidityDataTable, humidityOptions);
-                    });
+                        var humidityDiv = document.createElement('div');
+                        humidityDiv.style.width = '100%';
+                        humidityDiv.style.height = '500px';
+                        document.body.appendChild(humidityDiv);
+                        var humidityChart = new google.visualization.ColumnChart(humidityDiv);
+                        humidityChart.draw(google.visualization.arrayToDataTable([[{ label: 'Time', type: 'datetime' }, 'Humidity']].concat(cities[city].humidity)), humidityOptions);
+                    }
                 });
         }
     </script>
 </head>
 <body>
-    <header>Weather Dashboard</header>
-    <div id="charts"></div>
+    <h1>Weather Dashboard</h1>
 </body>
 </html>

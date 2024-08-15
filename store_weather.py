@@ -1,4 +1,5 @@
 import psycopg2
+import os
 
 def store_weather_data(weather_data):
     try:
@@ -34,11 +35,11 @@ def store_weather_data(weather_data):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-#if __name__ == '__main__':
-#    from fetch_weather import fetch_weather_data
-#    api_key = "0cd5195b0230bccd9770892c5e38c5d8"
-#    cities = ["Barrie,ca"]
-#    for city in cities:
-#        weather_data = fetch_weather_data(city, api_key)
-#        if weather_data:
-#            store_weather_data(weather_data)
+if __name__ == '__main__':
+    from fetch_weather import fetch_weather_data
+    api_key = "0cd5195b0230bccd9770892c5e38c5d8"
+    cities = ["Barrie,ca", "Toronto,ca"]
+    for city in cities:
+        weather_data = fetch_weather_data(city, api_key)
+        if weather_data:
+            store_weather_data(weather_data)
