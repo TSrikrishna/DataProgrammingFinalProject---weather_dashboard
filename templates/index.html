@@ -13,60 +13,71 @@
             fetch('/api/weather')
                 .then(response => response.json())
                 .then(data => {
-                    var temperatureData = new google.visualization.DataTable();
-                    temperatureData.addColumn('datetime', 'Time');
-                    temperatureData.addColumn('number', 'Temperature');
-                    var humidityData = new google.visualization.DataTable();
-                    humidityData.addColumn('datetime', 'Time');
-                    humidityData.addColumn('number', 'Humidity');
+                    var temperatureDataBarrie = new google.visualization.DataTable();
+                    temperatureDataBarrie.addColumn('datetime', 'Time');
+                    temperatureDataBarrie.addColumn('number', 'Temperature');
 
-                    var cities = {};
+                    var temperatureDataToronto = new google.visualization.DataTable();
+                    temperatureDataToronto.addColumn('datetime', 'Time');
+                    temperatureDataToronto.addColumn('number', 'Temperature');
+
+                    var humidityDataBarrie = new google.visualization.DataTable();
+                    humidityDataBarrie.addColumn('datetime', 'Time');
+                    humidityDataBarrie.addColumn('number', 'Humidity');
+
+                    var humidityDataToronto = new google.visualization.DataTable();
+                    humidityDataToronto.addColumn('datetime', 'Time');
+                    humidityDataToronto.addColumn('number', 'Humidity');
 
                     data.forEach(row => {
-                        var city = row.city;
-                        if (!cities[city]) {
-                            cities[city] = { temp: [], humidity: [] };
+                        var date = new Date(row.minute);
+                        if (row.city === 'Barrie') {
+                            temperatureDataBarrie.addRow([date, parseFloat(row.temperature)]);
+                            humidityDataBarrie.addRow([date, parseFloat(row.humidity)]);
+                        } else if (row.city === 'Toronto') {
+                            temperatureDataToronto.addRow([date, parseFloat(row.temperature)]);
+                            humidityDataToronto.addRow([date, parseFloat(row.humidity)]);
                         }
-                        cities[city].temp.push([new Date(row.minute), row.temperature]);
-                        cities[city].humidity.push([new Date(row.minute), row.humidity]);
                     });
 
-                    for (var city in cities) {
-                        var tempOptions = {
-                            title: 'Temperature Data for ' + city,
-                            hAxis: { title: 'Time' },
-                            vAxis: { title: 'Temperature (°C)' },
-                            curveType: 'function',
-                            legend: { position: 'bottom' },
-                            series: { 0: { pointShape: 'circle', lineDashStyle: [4, 4] } }
-                        };
-                        var humidityOptions = {
-                            title: 'Humidity Data for ' + city,
-                            hAxis: { title: 'Time' },
-                            vAxis: { title: 'Humidity (%)' },
-                            legend: { position: 'bottom' },
-                            series: { 0: { pointShape: 'circle' } }
-                        };
+                    var tempOptions = {
+                        hAxis: { title: 'Time', format: 'HH:mm' },
+                        vAxis: { title: 'Temperature (°C)' },
+                        series: { 0: { lineWidth: 2, pointSize: 5 } },
+                        legend: 'none'
+                    };
 
-                        var tempDiv = document.createElement('div');
-                        tempDiv.style.width = '100%';
-                        tempDiv.style.height = '500px';
-                        document.body.appendChild(tempDiv);
-                        var tempChart = new google.visualization.LineChart(tempDiv);
-                        tempChart.draw(google.visualization.arrayToDataTable([[{ label: 'Time', type: 'datetime' }, 'Temperature']].concat(cities[city].temp)), tempOptions);
+                    var humOptions = {
+                        hAxis: { title: 'Time', format: 'HH:mm' },
+                        vAxis: { title: 'Humidity (%)' },
+                        series: { 0: { lineWidth: 2, pointSize: 5 } },
+                        legend: 'none'
+                    };
 
-                        var humidityDiv = document.createElement('div');
-                        humidityDiv.style.width = '100%';
-                        humidityDiv.style.height = '500px';
-                        document.body.appendChild(humidityDiv);
-                        var humidityChart = new google.visualization.ColumnChart(humidityDiv);
-                        humidityChart.draw(google.visualization.arrayToDataTable([[{ label: 'Time', type: 'datetime' }, 'Humidity']].concat(cities[city].humidity)), humidityOptions);
-                    }
+                    var tempDivBarrie = document.getElementById('temperature_chart_barrie');
+                    var tempChartBarrie = new google.visualization.LineChart(tempDivBarrie);
+                    tempChartBarrie.draw(temperatureDataBarrie, tempOptions);
+
+                    var tempDivToronto = document.getElementById('temperature_chart_toronto');
+                    var tempChartToronto = new google.visualization.LineChart(tempDivToronto);
+                    tempChartToronto.draw(temperatureDataToronto, tempOptions);
+
+                    var humDivBarrie = document.getElementById('humidity_chart_barrie');
+                    var humChartBarrie = new google.visualization.ColumnChart(humDivBarrie);
+                    humChartBarrie.draw(humidityDataBarrie, humOptions);
+
+                    var humDivToronto = document.getElementById('humidity_chart_toronto');
+                    var humChartToronto = new google.visualization.ColumnChart(humDivToronto);
+                    humChartToronto.draw(humidityDataToronto, humOptions);
                 });
         }
     </script>
 </head>
 <body>
     <h1>Weather Dashboard</h1>
+    <div id="temperature_chart_barrie" style="width: 100%; height: 500px;"></div>
+    <div id="temperature_chart_toronto" style="width: 100%; height: 500px;"></div>
+    <div id="humidity_chart_barrie" style="width: 100%; height: 500px;"></div>
+    <div id="humidity_chart_toronto" style="width: 100%; height: 500px;"></div>
 </body>
 </html>

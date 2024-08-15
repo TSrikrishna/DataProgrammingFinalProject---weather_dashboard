@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template
 import psycopg2
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -25,7 +26,16 @@ def get_weather_data():
         ''')
         rows = c.fetchall()
         conn.close()
-        weather_data = [{'city': row[0], 'temperature': row[1], 'humidity': row[2], 'minute': row[3]} for row in rows]
+        
+        weather_data = []
+        for row in rows:
+            weather_data.append({
+                'city': row[0],
+                'temperature': row[1],
+                'humidity': row[2],
+                'minute': row[3].isoformat() if isinstance(row[3], datetime) else row[3]
+            })
+        print(f"Fetched weather data: {weather_data}")
         return weather_data
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -38,6 +48,7 @@ def index():
 @app.route('/api/weather', methods=['GET'])
 def api_weather():
     weather_data = get_weather_data()
+    print(f"API Weather Data: {weather_data}")
     return jsonify(weather_data)
 
 if __name__ == '__main__':
